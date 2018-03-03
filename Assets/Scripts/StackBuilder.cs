@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Core.Extensions;
+using Assets.Core.Scripts.Extensions;
 using DG.Tweening;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace Assets.Scripts
     {
         [SerializeField] private Vector3 pedestalSize = new Vector3(1, .5f, 1);
         [SerializeField] private float blockHeight = .2f;
+        [SerializeField] private float snapMarginOfError = .1f;
 
         private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
@@ -65,6 +67,11 @@ namespace Assets.Scripts
         {
             if (previous != null)
             {
+                previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(snapMarginOfError, 10000)).ToArray().ToBounds()
+                    .center;
+                current.transform.position = current.bounds.GetVertices().Select(v => v.Snap(snapMarginOfError, 10000)).ToArray().ToBounds()
+                    .center;
+
                 Destroy(current.gameObject);
                 var result = BoxCutter.Cut(previous.bounds, current.bounds);
 

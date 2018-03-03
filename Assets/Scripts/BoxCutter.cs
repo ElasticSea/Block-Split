@@ -24,6 +24,11 @@ namespace Assets.Scripts
             Func<Vector3, float> getAxis;
             Func<Vector3, float, Vector3> setAxis;
 
+            if (maxDist == Vector3.zero)
+            {
+                return new Result(current, null);
+            }
+
             if (maxDist.normalized == Vector3.forward || maxDist.normalized == Vector3.back)
             {
                 getAxis = v => v.z;
