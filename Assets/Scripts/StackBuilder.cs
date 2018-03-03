@@ -22,7 +22,7 @@ namespace Assets.Scripts
 
         private void Start()
         {
-            var pos = Vector3.zero.SetY(pedestalSize.y / 2);
+            var pos = Vector3.zero.SetY(-pedestalSize.y / 2);
             var block = CreateBlock(pos, pos, pedestalSize, 0);
             PlaceBlock(null, block);
         }
