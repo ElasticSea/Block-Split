@@ -35,7 +35,21 @@ namespace Assets.Scripts
             var height = lastblock.transform.position.y + lastblock.bounds.extents.y + blockHeight / 2;
             var size = lastblock.transform.localScale.SetY(blockHeight);
 
-            block = CreateBlock(Vector3.forward.SetY(height), Vector3.back.SetY(height), size, 1);
+
+            if (blocks.Count % 2 == 0)
+            {
+                block = CreateBlock(
+                    (lastblock.transform.position + Vector3.forward).SetY(height),
+                    (lastblock.transform.position + Vector3.back).SetY(height),
+                    size, 1);
+            }
+            else
+            {
+                block = CreateBlock(
+                    (lastblock.transform.position + Vector3.left).SetY(height),
+                    (lastblock.transform.position + Vector3.right).SetY(height),
+                    size, 1);
+            }
         }
 
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)

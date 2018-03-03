@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Assets.Core.Extensions;
 using Assets.Core.Scripts.Extensions;
 using UnityEngine;
@@ -20,8 +21,28 @@ namespace Assets.Scripts
                     maxDist = newDist;
             }
 
-            // Only works for Z axis
-            var ratio = maxDist.z > 0 ? (-maxDist.z + previous.size.z) / previous.size.z : 1 - (previous.size.z + maxDist.z) / previous.size.z;
+            Func<Vector3, float> getAxis;
+            Func<Vector3, float, Vector3> setAxis;
+
+            if (maxDist.normalized == Vector3.forward || maxDist.normalized == Vector3.back)
+            {
+                getAxis = v => v.z;
+                setAxis = (v, z) => v.SetZ(z);
+            }
+            else if (maxDist.normalized == Vector3.right || maxDist.normalized == Vector3.left)
+            {
+
+                getAxis = v => v.x;
+                setAxis = (v, x) => v.SetX(x);
+            }
+            else
+            {
+                throw new InvalidOperationException("Axis not supported: "+ maxDist);
+            }
+
+            var ratio = getAxis(maxDist) > 0
+                ? (-getAxis(maxDist) + getAxis(previous.size)) / getAxis(previous.size)
+                : 1 - (getAxis(previous.size) + getAxis(maxDist)) / getAxis(previous.size);
 
             if (ratio <= 0 || ratio >= 1)
             {
@@ -29,16 +50,16 @@ namespace Assets.Scripts
             }
             else
             {
-                var minZ = vertsB.Min(c => c.z);
-                var maxZ = vertsB.Max(c => c.z);
-                var midZ = (maxZ - minZ) * ratio + minZ;
-                var lastCurA = vertsB.Select(c => c.z > midZ ? c : c.SetZ(midZ));
-                var lastCurB = vertsB.Select(c => c.z < midZ ? c : c.SetZ(midZ));
+                var min = vertsB.Min(c => getAxis(c));
+                var max = vertsB.Max(c => getAxis(c));
+                var mid = (max - min) * ratio + min;
+                var lastCurA = vertsB.Select(c => getAxis(c) > mid ? c : setAxis(c,mid));
+                var lastCurB = vertsB.Select(c => getAxis(c) < mid ? c : setAxis(c,mid));
 
                 var ba = lastCurA.ToArray().ToBounds();
                 var bb = lastCurB.ToArray().ToBounds();
 
-                return maxDist.z > 0 ? new Result(bb, ba) : new Result(ba, bb);
+                return getAxis(maxDist) > 0 ? new Result(bb, ba) : new Result(ba, bb);
             }
         }
 
