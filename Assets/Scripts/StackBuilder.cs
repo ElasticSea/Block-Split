@@ -13,6 +13,38 @@ namespace Assets.Scripts
         [SerializeField] private Vector3 pedestalSize = new Vector3(1, .5f, 1);
         [SerializeField] private float blockHeight = .2f;
         [SerializeField] private float snapMarginOfError = .1f;
+        [SerializeField] private Color blockColor = Color.blue;
+        [SerializeField] private Color cutoutColor = Color.red;
+
+        public Vector3 PedestalSize
+        {
+            get { return pedestalSize; }
+            set { pedestalSize = value; }
+        }
+
+        public float BlockHeight
+        {
+            get { return blockHeight; }
+            set { blockHeight = value; }
+        }
+
+        public float SnapMarginOfError
+        {
+            get { return snapMarginOfError; }
+            set { snapMarginOfError = value; }
+        }
+
+        public Color BlockColor
+        {
+            get { return blockColor; }
+            set { blockColor = value; }
+        }
+
+        public Color CutoutColor
+        {
+            get { return cutoutColor; }
+            set { cutoutColor = value; }
+        }
 
         private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
@@ -24,8 +56,8 @@ namespace Assets.Scripts
 
         private void Start()
         {
-            var pos = Vector3.zero.SetY(-pedestalSize.y / 2);
-            var block = CreateBlock(pos, pos, pedestalSize, 0);
+            var pos = Vector3.zero.SetY(-PedestalSize.y / 2);
+            var block = CreateBlock(pos, pos, PedestalSize, 0);
             PlaceBlock(null, block);
         }
 
@@ -34,8 +66,8 @@ namespace Assets.Scripts
             if (block) PlaceBlock(blocks.Last(), block);
 
             var lastblock = blocks.Last();
-            var height = lastblock.transform.position.y + lastblock.bounds.extents.y + blockHeight / 2;
-            var size = lastblock.transform.localScale.SetY(blockHeight);
+            var height = lastblock.transform.position.y + lastblock.bounds.extents.y + BlockHeight / 2;
+            var size = lastblock.transform.localScale.SetY(BlockHeight);
 
 
             if (blocks.Count % 2 == 0)
@@ -57,6 +89,7 @@ namespace Assets.Scripts
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
         {
             var block = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<Collider>();
+            block.GetComponent<Renderer>().material.color = blockColor;
             block.transform.localScale = size;
             block.transform.position = from;
             transition = block.transform.DOMove(to, from.Distance(to) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
@@ -67,9 +100,9 @@ namespace Assets.Scripts
         {
             if (previous != null)
             {
-                previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(snapMarginOfError, 10000)).ToArray().ToBounds()
+                previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
                     .center;
-                current.transform.position = current.bounds.GetVertices().Select(v => v.Snap(snapMarginOfError, 10000)).ToArray().ToBounds()
+                current.transform.position = current.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
                     .center;
 
                 Destroy(current.gameObject);
@@ -80,7 +113,7 @@ namespace Assets.Scripts
                 if (result.Base != null)
                 {
                     var block = createBox(result.Base.Value);
-                    block.GetComponent<Renderer>().material.color = Color.blue;
+                    block.GetComponent<Renderer>().material.color = blockColor;
                     block.name = "Block";
                     block.gameObject.AddComponent<Rigidbody>().isKinematic = true;
 
@@ -96,7 +129,7 @@ namespace Assets.Scripts
                 if (result.Cutout != null)
                 {
                     var cutout = createBox(result.Cutout.Value);
-                    cutout.GetComponent<Renderer>().material.color = Color.red;
+                    cutout.GetComponent<Renderer>().material.color = cutoutColor;
                     cutout.name = "Cutout";
                     cutout.gameObject.AddComponent<Rigidbody>().isKinematic = false;
                 }
