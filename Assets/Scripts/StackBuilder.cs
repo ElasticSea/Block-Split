@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Core.Extensions;
+using Assets.Core.Scripts;
 using Assets.Core.Scripts.Extensions;
 using DG.Tweening;
 using UnityEngine;
@@ -51,8 +52,21 @@ namespace Assets.Scripts
 
         private Collider block;
         private Tweener transition;
+        private Pool<GameObject> pool;
 
         public event Action<Collider> OnBlockAdded = block => { };
+
+        private void Awake()
+        {
+            pool = new Pool<GameObject>(10, () => GameObject.CreatePrimitive(PrimitiveType.Cube), go =>
+            {
+                go.SetActive(true);
+                go.GetOrAddComponent<Rigidbody>().isKinematic = true;
+                go.transform.rotation = Quaternion.identity;
+                go.transform.position = Vector3.zero;
+                go.transform.localScale = Vector3.one;
+            }, go => go.SetActive(false));
+        }
 
         private void Start()
         {
@@ -88,7 +102,7 @@ namespace Assets.Scripts
 
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
         {
-            var block = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<Collider>();
+            var block = pool.Get().GetComponent<Collider>();
             block.GetComponent<Renderer>().material.color = blockColor;
             block.transform.localScale = size;
             block.transform.position = from;
@@ -105,7 +119,10 @@ namespace Assets.Scripts
                 current.transform.position = current.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
                     .center;
 
+                // TODO put it in the pool
+                // pool.Put(current.gameObject);
                 Destroy(current.gameObject);
+
                 var result = BoxCutter.Cut(previous.bounds, current.bounds);
 
                 transition.Kill();
@@ -115,7 +132,7 @@ namespace Assets.Scripts
                     var block = createBox(result.Base.Value);
                     block.GetComponent<Renderer>().material.color = blockColor;
                     block.name = "Block";
-                    block.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+                    block.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
 
                     var bb = block.GetComponent<Collider>();
                     blocks.Add(bb);
@@ -131,7 +148,11 @@ namespace Assets.Scripts
                     var cutout = createBox(result.Cutout.Value);
                     cutout.GetComponent<Renderer>().material.color = cutoutColor;
                     cutout.name = "Cutout";
-                    cutout.gameObject.AddComponent<Rigidbody>().isKinematic = false;
+                    cutout.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = false;
+
+                    var kill = cutout.GetOrAddComponent<KillBlockBelowHeight>();
+                    kill.Height = blocks.Last().transform.position.y - 10;
+                    kill.Pool = pool;
                 }
                 else
                 {
@@ -142,7 +163,7 @@ namespace Assets.Scripts
             else
             {
                 transition.Kill();
-                current.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+                current.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
                 blocks.Add(current);
                 OnBlockAdded(current);
             }
@@ -150,7 +171,7 @@ namespace Assets.Scripts
 
         private GameObject createBox(Bounds resultBase)
         {
-            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var box = pool.Get();
             box.transform.position = resultBase.center;
             box.transform.localScale = resultBase.size;
             return box;
