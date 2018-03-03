@@ -4,7 +4,7 @@ namespace Assets.Scripts
 {
     public class BlockHorizontalPosition : MonoBehaviour
     {
-        [SerializeField] private BlockBuilder builder;
+        [SerializeField] private StackBuilder builder;
 
         private void Awake()
         {
