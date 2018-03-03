@@ -10,6 +10,7 @@ namespace Assets.Scripts
     public class StackBuilder : MonoBehaviour
     {
         [SerializeField] private Vector3 pedestalSize = new Vector3(1, .5f, 1);
+        [SerializeField] private float blockHeight = .2f;
 
         private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
@@ -21,36 +22,84 @@ namespace Assets.Scripts
 
         private void Start()
         {
-            var block = CreateBlock(Vector3.zero, Vector3.zero, pedestalSize, 0);
+            var pos = Vector3.zero.SetY(pedestalSize.y / 2);
+            var block = CreateBlock(pos, pos, pedestalSize, 0);
             PlaceBlock(null, block);
         }
 
         public void SpawnBlock()
         {
-            if (block)
-            {
-                PlaceBlock(blocks.Last(), block);
-            }
-            block = CreateBlock(Vector3.forward, Vector3.back, new Vector3(1, .2f, 1), 1);
+            if (block) PlaceBlock(blocks.Last(), block);
+
+            var lastblock = blocks.Last();
+            var height = lastblock.transform.position.y + lastblock.bounds.extents.y + blockHeight / 2;
+            var size = lastblock.transform.localScale.SetY(blockHeight);
+
+            block = CreateBlock(Vector3.forward.SetY(height), Vector3.back.SetY(height), size, 1);
         }
 
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
         {
             var block = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<Collider>();
             block.transform.localScale = size;
-
-            var lastBlock = blocks.LastOrDefault();
-            var height = (lastBlock ? lastBlock.transform.position.y + lastBlock.bounds.extents.y  : 0) + block.bounds.extents.y;
-            block.transform.position = from.SetY(height);
-            transition = block.transform.DOMove(to.SetY(height), to.Distance(from) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
+            block.transform.position = from;
+            transition = block.transform.DOMove(to, from.Distance(to) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
             return block;
         }
 
         private void PlaceBlock(Collider previous, Collider current)
         {
-            transition.Kill();
-            current.gameObject.AddComponent<Rigidbody>().isKinematic = true;
-            blocks.Add(current);
+            if (previous != null)
+            {
+                Destroy(current.gameObject);
+                var result = BoxCutter.Cut(previous.bounds, current.bounds);
+
+                transition.Kill();
+
+                if (result.Base != null)
+                {
+                    var block = createBox(result.Base.Value);
+                    block.GetComponent<Renderer>().material.color = Color.blue;
+                    block.name = "Block";
+                    block.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+
+                    var bb = block.GetComponent<Collider>();
+                    blocks.Add(bb);
+                    OnBlockAdded(bb);
+                }
+                else
+                {
+                    //Die
+                }
+
+                if (result.Cutout != null)
+                {
+                    var cutout = createBox(result.Cutout.Value);
+                    cutout.GetComponent<Renderer>().material.color = Color.red;
+                    cutout.name = "Cutout";
+                    cutout.gameObject.AddComponent<Rigidbody>().isKinematic = false;
+                }
+                else
+                {
+                    //place the same
+                }
+
+            }
+            else
+            {
+                transition.Kill();
+                current.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+                blocks.Add(current);
+                OnBlockAdded(current);
+            }
+        }
+
+        private GameObject createBox(Bounds resultBase)
+        {
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.transform.position = resultBase.center;
+            box.transform.localScale = resultBase.size;
+            return box;
         }
     }
 }
