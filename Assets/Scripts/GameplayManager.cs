@@ -11,6 +11,7 @@ namespace Assets.Scripts
 
         private int blockCount = 1;
         private Color color;
+        private int record;
 
         private void Awake()
         {
@@ -18,8 +19,14 @@ namespace Assets.Scripts
             Color colorB = Utils.RandomColor() / 2f + Color.white * .5f;
 
             Colorize(colorA);
-            builder.OnBlockAdded += block =>
+            builder.OnBlockAdded += result =>
             {
+                if (result.Success == false)
+                {
+                    record = 0;
+                    return;
+                }
+
                 if (blockCount > colorGradientLength)
                 {
                     colorA = colorB;
@@ -28,6 +35,12 @@ namespace Assets.Scripts
                 }
                 Colorize(Color.Lerp(colorA, colorB, blockCount / (float) colorGradientLength));
                 blockCount++;
+                record++;
+
+                if (record >= 2)
+                {
+                    builder.extendBlock(builder.Direction);
+                }
             };
         }
 

@@ -53,8 +53,10 @@ namespace Assets.Scripts
         private Collider block;
         private Tweener transition;
         private Pool<GameObject> pool;
+        private Bounds? extendedForm;
+        public Vector3 Direction { get; private set; }
 
-        public event Action<Collider> OnBlockAdded = block => { };
+        public event Action<BlockPlacementResult> OnBlockAdded = block => { };
 
         private void Awake()
         {
@@ -80,24 +82,26 @@ namespace Assets.Scripts
             if (block) PlaceBlock(blocks.Last(), block);
 
             var lastblock = blocks.Last();
-            var height = lastblock.transform.position.y + lastblock.bounds.extents.y + BlockHeight / 2;
-            var size = lastblock.transform.localScale.SetY(BlockHeight);
-
+            var position = extendedForm?.center ?? lastblock.transform.position;
+            var height = position.y + lastblock.bounds.extents.y + BlockHeight / 2;
+            var size = extendedForm?.size ?? lastblock.transform.localScale.SetY(BlockHeight);
 
             if (blocks.Count % 2 == 0)
             {
                 block = CreateBlock(
-                    (lastblock.transform.position + Vector3.forward).SetY(height),
-                    (lastblock.transform.position + Vector3.back).SetY(height),
+                    (position + Vector3.forward).SetY(height),
+                    (position + Vector3.back).SetY(height),
                     size, 1);
             }
             else
             {
                 block = CreateBlock(
-                    (lastblock.transform.position + Vector3.left).SetY(height),
-                    (lastblock.transform.position + Vector3.right).SetY(height),
+                    (position + Vector3.left).SetY(height),
+                    (position + Vector3.right).SetY(height),
                     size, 1);
             }
+            extendedForm = null;
+            Direction = blocks.Last().transform.position.SetY(0) - block.transform.position.SetY(0);
         }
 
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
@@ -127,16 +131,15 @@ namespace Assets.Scripts
 
                 transition.Kill();
 
+                GameObject baseBlock = null;
                 if (result.Base != null)
                 {
-                    var block = createBox(result.Base.Value);
-                    block.GetComponent<Renderer>().material.color = blockColor;
-                    block.name = "Block";
-                    block.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
+                    baseBlock = createBox(result.Base.Value);
+                    baseBlock.GetComponent<Renderer>().material.color = blockColor;
+                    baseBlock.name = "Block";
+                    baseBlock.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
 
-                    var bb = block.GetComponent<Collider>();
-                    blocks.Add(bb);
-                    OnBlockAdded(bb);
+                    blocks.Add(baseBlock.GetComponent<Collider>());
                 }
                 else
                 {
@@ -150,6 +153,7 @@ namespace Assets.Scripts
                     cutout.name = "Cutout";
                     cutout.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = false;
 
+
                     var kill = cutout.GetOrAddComponent<KillBlockBelowHeight>();
                     kill.Height = blocks.Last().transform.position.y - 10;
                     kill.Pool = pool;
@@ -158,6 +162,7 @@ namespace Assets.Scripts
                 {
                     //place the same
                 }
+                OnBlockAdded(new BlockPlacementResult { Block = baseBlock,  Success = result.Cutout == null });
 
             }
             else
@@ -165,7 +170,7 @@ namespace Assets.Scripts
                 transition.Kill();
                 current.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
                 blocks.Add(current);
-                OnBlockAdded(current);
+                OnBlockAdded(new BlockPlacementResult() { Block = current.gameObject,  Success = true});
             }
         }
 
@@ -175,6 +180,26 @@ namespace Assets.Scripts
             box.transform.position = resultBase.center;
             box.transform.localScale = resultBase.size;
             return box;
+        }
+
+        public class BlockPlacementResult
+        {
+            public GameObject Block;
+            public bool Success;
+        }
+
+        public void extendBlock(Vector3 resultDirection)
+        {
+            var last = blocks.Last().transform;
+
+            extendedForm = new Bounds(
+                last.position + resultDirection * snapMarginOfError / 2f,
+                last.localScale + resultDirection * snapMarginOfError
+                );
+
+            last.DOScale(extendedForm.Value.size, .3f).SetEase(Ease.Linear);
+            last.DOMove(extendedForm.Value.center, .3f).SetEase(Ease.Linear);
+
         }
     }
 }

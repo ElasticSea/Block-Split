@@ -9,9 +9,14 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            builder.OnBlockAdded += block =>
+            builder.OnBlockAdded += result =>
             {
-                transform.position = Vector3.up * Mathf.Max(minHeight, block.transform.position.y + block.bounds.size.y / 2);
+                if (result.Success)
+                {
+                    transform.position = Vector3.up *
+                                         Mathf.Max(minHeight,
+                                             result.Block.transform.position.y + result.Block.GetComponent<Collider>().bounds.size.y / 2);
+                }
             };
         }
     }
