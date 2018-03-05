@@ -225,6 +225,8 @@ MonoBehaviour:
   score: {fileID: 1514671133}
   gameOver: {fileID: 206820441}
   retry: {fileID: 2012462312}
+  ripplePrefab: {fileID: 114764862286001472, guid: 7acb4625ce5003d4781be30cb7cc1ac6,
+    type: 2}
 --- !u!1 &206820439
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,6 @@
-﻿using Assets.Core.Scripts.Extensions;
+﻿using System.Linq;
+using Assets.Core.Extensions;
+using Assets.Core.Scripts.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -12,6 +14,7 @@ namespace Assets.Scripts
         [SerializeField] private Text score;
         [SerializeField] private Text gameOver;
         [SerializeField] private Text retry;
+        [SerializeField] private BlockRipple ripplePrefab;
 
         private void Awake()
         {
@@ -23,6 +26,12 @@ namespace Assets.Scripts
             stack.OnBlockPlaced += result =>
             {
                 score.text = stack.Blocks.Count.ToString();
+
+                var block = stack.Blocks.Last();
+
+                var ripple = Instantiate(ripplePrefab);
+                ripple.transform.position = block.transform.position;
+                ripple.Animate(block.transform.localScale.x, block.transform.localScale.z, .05f);
 
                 if (result == StackBuilder.PlacementResult.Miss)
                 {
