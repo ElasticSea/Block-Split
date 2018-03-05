@@ -10,9 +10,9 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            builder.OnBlockPlaced += sucess =>
+            builder.OnBlockPlaced += result =>
             {
-                if (sucess)
+                if (result == StackBuilder.PlacementResult.Placed)
                 {
                     var block = builder.Blocks.Last();
                     transform.position = Vector3.up *

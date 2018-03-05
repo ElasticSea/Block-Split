@@ -55,7 +55,7 @@ namespace Assets.Scripts
         private Pool<GameObject> pool;
         private Bounds extendedForm;
 
-        public event Action<bool> OnBlockPlaced = sucess => { };
+        public event Action<PlacementResult> OnBlockPlaced = result => { };
 
         private void Awake()
         {
@@ -76,14 +76,13 @@ namespace Assets.Scripts
 
             transition.Kill();
             extendedForm = new Bounds(block.transform.position, block.transform.localScale);
-            block.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
             blocks.Add(block);
-            OnBlockPlaced(true);
+            OnBlockPlaced(PlacementResult.Placed);
         }
 
         public void SpawnBlock()
         {
-            if (currentBlock) PlaceBlock(blocks.Last(), currentBlock);
+            if (currentBlock != null) return;
 
             var lastblock = blocks.Last();
             var position = extendedForm.center;
@@ -106,6 +105,14 @@ namespace Assets.Scripts
             }
         }
 
+        public void PlaceBlock()
+        {
+            if (currentBlock == null) return;
+
+            PlaceBlock(blocks.Last(), currentBlock);
+            currentBlock = null;
+        }
+
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
         {
             var block = pool.Get().GetComponent<Collider>();
@@ -114,6 +121,31 @@ namespace Assets.Scripts
             block.transform.position = from;
             transition = block.transform.DOMove(to, from.Distance(to) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
             return block;
+        }
+
+        public void Extend()
+        {
+            var last = blocks.Last().transform;
+
+            var offsets = new[]
+            {
+                Tuple.Create(Vector3.left, .5f - Mathf.Abs(extendedForm.center.x - extendedForm.size.x / 2f)),
+                Tuple.Create(Vector3.right,  .5f- Mathf.Abs(extendedForm.center.x + extendedForm.size.x / 2f)),
+                Tuple.Create(Vector3.back,  .5f -Mathf.Abs(extendedForm.center.z - extendedForm.size.z / 2f)),
+                Tuple.Create(Vector3.forward, .5f -Mathf.Abs( extendedForm.center.z + extendedForm.size.z / 2f))
+            };
+
+            var dir = offsets.OrderByDescending(it => it.Item2).FirstOrDefault(it => it.Item2 > 0.001f)?.Item1;
+            if (dir != null)
+            {
+                extendedForm = new Bounds(
+                    last.position + dir.Value * snapMarginOfError / 2f,
+                    last.localScale + dir.Value.Abs() * snapMarginOfError
+                );
+
+                last.DOScale(extendedForm.size, .3f).SetEase(Ease.Linear);
+                last.DOMove(extendedForm.center, .3f).SetEase(Ease.Linear);
+            }
         }
 
         private void PlaceBlock(Collider previous, Collider current)
@@ -141,6 +173,7 @@ namespace Assets.Scripts
             }
             else
             {
+                OnBlockPlaced(PlacementResult.Miss);
                 return;
                 //Die
             }
@@ -162,7 +195,7 @@ namespace Assets.Scripts
                 //place the same
             }
             extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
-            OnBlockPlaced(result.Cutout == null);
+            OnBlockPlaced(result.Cutout == null ? PlacementResult.Placed : PlacementResult.Partial);
 
         }
 
@@ -180,29 +213,9 @@ namespace Assets.Scripts
             return box;
         }
 
-        public void Extend()
+        public enum PlacementResult
         {
-            var last = blocks.Last().transform;
-
-            var offsets = new[]
-            {
-                Tuple.Create(Vector3.left, .5f - Mathf.Abs(extendedForm.center.x - extendedForm.size.x / 2f)),
-                Tuple.Create(Vector3.right,  .5f- Mathf.Abs(extendedForm.center.x + extendedForm.size.x / 2f)),
-                Tuple.Create(Vector3.back,  .5f -Mathf.Abs(extendedForm.center.z - extendedForm.size.z / 2f)),
-                Tuple.Create(Vector3.forward, .5f -Mathf.Abs( extendedForm.center.z + extendedForm.size.z / 2f))
-            };
-
-            var dir = offsets.OrderByDescending(it => it.Item2).FirstOrDefault(it => it.Item2 > 0.001f)?.Item1;
-            if (dir != null)
-            {
-                extendedForm = new Bounds(
-                    last.position + dir.Value * snapMarginOfError / 2f,
-                    last.localScale + dir.Value.Abs() * snapMarginOfError
-                );
-
-                last.DOScale(extendedForm.size, .3f).SetEase(Ease.Linear);
-                last.DOMove(extendedForm.center, .3f).SetEase(Ease.Linear);
-            }
+            Placed, Partial, Miss
         }
     }
 }

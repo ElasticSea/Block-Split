@@ -11,23 +11,27 @@ namespace Assets.Scripts
 
         private Color color;
         private int record;
+        private bool gameover;
 
         private void Awake()
         {
             builder.BlockColor = Color;
             builder.CutoutColor = Color;
-            builder.OnBlockPlaced += sucess =>
+            builder.OnBlockPlaced += result =>
             {
                 builder.BlockColor = Color;
                 builder.CutoutColor = Color;
 
-                if (sucess == false)
+                if (result == StackBuilder.PlacementResult.Partial)
                 {
                     record = 0;
                 }
-                else
+                else if(result == StackBuilder.PlacementResult.Placed)
                 {
                     record++;
+                }else if (result == StackBuilder.PlacementResult.Miss)
+                {
+                    gameover = true;
                 }
 
                 if (record >= expandThreshold)
@@ -44,7 +48,12 @@ namespace Assets.Scripts
         {
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
             {
-                builder.SpawnBlock();
+                builder.PlaceBlock();
+
+                if (gameover == false)
+                {
+                    builder.SpawnBlock();
+                }
             }
         }
     }
