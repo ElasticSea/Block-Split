@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -9,13 +10,14 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            builder.OnBlockAdded += result =>
+            builder.OnBlockPlaced += sucess =>
             {
-                if (result.Success)
+                if (sucess)
                 {
+                    var block = builder.Blocks.Last();
                     transform.position = Vector3.up *
                                          Mathf.Max(minHeight,
-                                             result.Block.transform.position.y + result.Block.GetComponent<Collider>().bounds.size.y / 2);
+                                             block.transform.position.y + block.GetComponent<Collider>().bounds.size.y / 2);
                 }
             };
         }

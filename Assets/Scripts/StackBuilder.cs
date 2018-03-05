@@ -50,12 +50,12 @@ namespace Assets.Scripts
         private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
 
-        private Collider block;
+        private Collider currentBlock;
         private Tweener transition;
         private Pool<GameObject> pool;
         private Bounds extendedForm;
 
-        public event Action<BlockPlacementResult> OnBlockAdded = block => { };
+        public event Action<bool> OnBlockPlaced = sucess => { };
 
         private void Awake()
         {
@@ -73,12 +73,17 @@ namespace Assets.Scripts
         {
             var pos = Vector3.zero.SetY(-PedestalSize.y / 2);
             var block = CreateBlock(pos, pos, PedestalSize, 0);
-            PlaceBlock(null, block);
+
+            transition.Kill();
+            extendedForm = new Bounds(block.transform.position, block.transform.localScale);
+            block.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
+            blocks.Add(block);
+            OnBlockPlaced(true);
         }
 
         public void SpawnBlock()
         {
-            if (block) PlaceBlock(blocks.Last(), block);
+            if (currentBlock) PlaceBlock(blocks.Last(), currentBlock);
 
             var lastblock = blocks.Last();
             var position = extendedForm.center;
@@ -87,14 +92,14 @@ namespace Assets.Scripts
 
             if (blocks.Count % 2 == 0)
             {
-                block = CreateBlock(
+                currentBlock = CreateBlock(
                     (position + Vector3.forward).SetY(height),
                     (position + Vector3.back).SetY(height),
                     size, 1);
             }
             else
             {
-                block = CreateBlock(
+                currentBlock = CreateBlock(
                     (position + Vector3.left).SetY(height),
                     (position + Vector3.right).SetY(height),
                     size, 1);
@@ -113,79 +118,66 @@ namespace Assets.Scripts
 
         private void PlaceBlock(Collider previous, Collider current)
         {
-            if (previous != null)
+            ClampCollider(previous);
+            ClampCollider(current);
+
+            // TODO put it in the pool
+            // pool.Put(current.gameObject);
+            Destroy(current.gameObject);
+
+            var result = BoxCutter.Cut(previous.bounds, current.bounds);
+
+            transition.Kill();
+
+            GameObject baseBlock = null;
+            if (result.Base != null)
             {
-                previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
-                    .center;
-                current.transform.position = current.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
-                    .center;
+                baseBlock = CreateBox(result.Base.Value);
+                baseBlock.GetComponent<Renderer>().material.color = blockColor;
+                baseBlock.name = "Block";
+                baseBlock.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
 
-                // TODO put it in the pool
-                // pool.Put(current.gameObject);
-                Destroy(current.gameObject);
-
-                var result = BoxCutter.Cut(previous.bounds, current.bounds);
-
-                transition.Kill();
-
-                GameObject baseBlock = null;
-                if (result.Base != null)
-                {
-                    baseBlock = createBox(result.Base.Value);
-                    baseBlock.GetComponent<Renderer>().material.color = blockColor;
-                    baseBlock.name = "Block";
-                    baseBlock.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
-
-                    blocks.Add(baseBlock.GetComponent<Collider>());
-                }
-                else
-                {
-                    return;
-                    //Die
-                }
-
-                if (result.Cutout != null)
-                {
-                    var cutout = createBox(result.Cutout.Value);
-                    cutout.GetComponent<Renderer>().material.color = cutoutColor;
-                    cutout.name = "Cutout";
-                    cutout.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = false;
-
-
-                    var kill = cutout.GetOrAddComponent<KillBlockBelowHeight>();
-                    kill.Height = blocks.Last().transform.position.y - 10;
-                    kill.Pool = pool;
-                }
-                else
-                {
-                    //place the same
-                }
-                extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
-                OnBlockAdded(new BlockPlacementResult { Block = baseBlock,  Success = result.Cutout == null });
-
+                blocks.Add(baseBlock.GetComponent<Collider>());
             }
             else
             {
-                transition.Kill();
-                extendedForm = new Bounds(current.transform.position, current.transform.localScale);
-                current.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
-                blocks.Add(current);
-                OnBlockAdded(new BlockPlacementResult() { Block = current.gameObject,  Success = true});
+                return;
+                //Die
             }
+
+            if (result.Cutout != null)
+            {
+                var cutout = CreateBox(result.Cutout.Value);
+                cutout.GetComponent<Renderer>().material.color = cutoutColor;
+                cutout.name = "Cutout";
+                cutout.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = false;
+
+
+                var kill = cutout.GetOrAddComponent<KillBlockBelowHeight>();
+                kill.Height = blocks.Last().transform.position.y - 10;
+                kill.Pool = pool;
+            }
+            else
+            {
+                //place the same
+            }
+            extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
+            OnBlockPlaced(result.Cutout == null);
+
         }
 
-        private GameObject createBox(Bounds resultBase)
+        private void ClampCollider(Collider previous)
+        {
+            previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
+                .center;
+        }
+
+        private GameObject CreateBox(Bounds resultBase)
         {
             var box = pool.Get();
             box.transform.position = resultBase.center;
             box.transform.localScale = resultBase.size;
             return box;
-        }
-
-        public class BlockPlacementResult
-        {
-            public GameObject Block;
-            public bool Success;
         }
 
         public void Extend()

@@ -10,10 +10,11 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            stack.OnBlockAdded += result =>
+            stack.OnBlockPlaced += result =>
             {
                 score.text = stack.Blocks.Count.ToString();
             };
+
         }
     }
 }

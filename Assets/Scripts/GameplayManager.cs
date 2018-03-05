@@ -1,5 +1,4 @@
 ﻿using System;
-using Assets.Core.Scripts;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -8,52 +7,41 @@ namespace Assets.Scripts
     {
         [SerializeField] private StackBuilder builder;
         [SerializeField] private int colorGradientLength;
+        [SerializeField] private int expandThreshold;
 
-        private int blockCount = 1;
         private Color color;
         private int record;
 
         private void Awake()
         {
-            Color colorA = Utils.RandomColor() / 2f + Color.white * .5f;
-            Color colorB = Utils.RandomColor() / 2f + Color.white * .5f;
-
-            Colorize(colorA);
-            builder.OnBlockAdded += result =>
+            builder.BlockColor = Color;
+            builder.CutoutColor = Color;
+            builder.OnBlockPlaced += sucess =>
             {
-                if (result.Success == false)
+                builder.BlockColor = Color;
+                builder.CutoutColor = Color;
+
+                if (sucess == false)
                 {
                     record = 0;
-                    return;
                 }
-
-                if (blockCount > colorGradientLength)
+                else
                 {
-                    colorA = colorB;
-                    colorB = Utils.RandomColor();
-                    blockCount = 1;
+                    record++;
                 }
-                Colorize(Color.Lerp(colorA, colorB, blockCount / (float) colorGradientLength));
-                blockCount++;
-                record++;
 
-                if (record >= 2)
+                if (record >= expandThreshold)
                 {
                     builder.Extend();
                 }
             };
         }
 
-        private void Colorize(Color color)
-        {
-            this.color = color;
-            builder.BlockColor = color;
-            builder.CutoutColor = color;
-        }
+        private Color startingColor = Color.red.TransformHSV((float) (360 * new System.Random().NextDouble()), 1, 1);
+        private Color Color => startingColor.TransformHSV(colorGradientLength * 1.6180339887f * builder.Blocks.Count, 1, 1);
 
         private void Update()
         {
-            Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, color.TransformHSV(0, .4f, .3f), Time.deltaTime);
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 builder.SpawnBlock();
