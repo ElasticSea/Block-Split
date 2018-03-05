@@ -53,8 +53,7 @@ namespace Assets.Scripts
         private Collider block;
         private Tweener transition;
         private Pool<GameObject> pool;
-        private Bounds? extendedForm;
-        public Vector3 Direction { get; private set; }
+        private Bounds extendedForm;
 
         public event Action<BlockPlacementResult> OnBlockAdded = block => { };
 
@@ -82,9 +81,9 @@ namespace Assets.Scripts
             if (block) PlaceBlock(blocks.Last(), block);
 
             var lastblock = blocks.Last();
-            var position = extendedForm?.center ?? lastblock.transform.position;
+            var position = extendedForm.center;
             var height = position.y + lastblock.bounds.extents.y + BlockHeight / 2;
-            var size = extendedForm?.size ?? lastblock.transform.localScale.SetY(BlockHeight);
+            var size = extendedForm.size.SetY(BlockHeight);
 
             if (blocks.Count % 2 == 0)
             {
@@ -100,8 +99,6 @@ namespace Assets.Scripts
                     (position + Vector3.right).SetY(height),
                     size, 1);
             }
-            extendedForm = null;
-            Direction = blocks.Last().transform.position.SetY(0) - block.transform.position.SetY(0);
         }
 
         private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
@@ -143,6 +140,7 @@ namespace Assets.Scripts
                 }
                 else
                 {
+                    return;
                     //Die
                 }
 
@@ -162,12 +160,14 @@ namespace Assets.Scripts
                 {
                     //place the same
                 }
+                extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
                 OnBlockAdded(new BlockPlacementResult { Block = baseBlock,  Success = result.Cutout == null });
 
             }
             else
             {
                 transition.Kill();
+                extendedForm = new Bounds(current.transform.position, current.transform.localScale);
                 current.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = true;
                 blocks.Add(current);
                 OnBlockAdded(new BlockPlacementResult() { Block = current.gameObject,  Success = true});
@@ -188,18 +188,29 @@ namespace Assets.Scripts
             public bool Success;
         }
 
-        public void extendBlock(Vector3 resultDirection)
+        public void Extend()
         {
             var last = blocks.Last().transform;
 
-            extendedForm = new Bounds(
-                last.position + resultDirection * snapMarginOfError / 2f,
-                last.localScale + resultDirection * snapMarginOfError
+            var offsets = new[]
+            {
+                Tuple.Create(Vector3.left, .5f - Mathf.Abs(extendedForm.center.x - extendedForm.size.x / 2f)),
+                Tuple.Create(Vector3.right,  .5f- Mathf.Abs(extendedForm.center.x + extendedForm.size.x / 2f)),
+                Tuple.Create(Vector3.back,  .5f -Mathf.Abs(extendedForm.center.z - extendedForm.size.z / 2f)),
+                Tuple.Create(Vector3.forward, .5f -Mathf.Abs( extendedForm.center.z + extendedForm.size.z / 2f))
+            };
+
+            var dir = offsets.OrderByDescending(it => it.Item2).FirstOrDefault(it => it.Item2 > 0.001f)?.Item1;
+            if (dir != null)
+            {
+                extendedForm = new Bounds(
+                    last.position + dir.Value * snapMarginOfError / 2f,
+                    last.localScale + dir.Value.Abs() * snapMarginOfError
                 );
 
-            last.DOScale(extendedForm.Value.size, .3f).SetEase(Ease.Linear);
-            last.DOMove(extendedForm.Value.center, .3f).SetEase(Ease.Linear);
-
+                last.DOScale(extendedForm.size, .3f).SetEase(Ease.Linear);
+                last.DOMove(extendedForm.center, .3f).SetEase(Ease.Linear);
+            }
         }
     }
 }

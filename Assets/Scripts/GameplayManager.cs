@@ -39,7 +39,7 @@ namespace Assets.Scripts
 
                 if (record >= 2)
                 {
-                    builder.extendBlock(builder.Direction);
+                    builder.Extend();
                 }
             };
         }
