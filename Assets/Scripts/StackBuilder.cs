@@ -171,12 +171,6 @@ namespace Assets.Scripts
 
                 blocks.Add(baseBlock.GetComponent<Collider>());
             }
-            else
-            {
-                OnBlockPlaced(PlacementResult.Miss);
-                return;
-                //Die
-            }
 
             if (result.Cutout != null)
             {
@@ -190,13 +184,16 @@ namespace Assets.Scripts
                 kill.Height = blocks.Last().transform.position.y - 10;
                 kill.Pool = pool;
             }
+
+            if (baseBlock != null)
+            {
+                extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
+                OnBlockPlaced(result.Cutout == null ? PlacementResult.Placed : PlacementResult.Partial);
+            }
             else
             {
-                //place the same
+                OnBlockPlaced(PlacementResult.Miss);
             }
-            extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
-            OnBlockPlaced(result.Cutout == null ? PlacementResult.Placed : PlacementResult.Partial);
-
         }
 
         private void ClampCollider(Collider previous)
