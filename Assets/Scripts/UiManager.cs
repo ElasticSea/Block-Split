@@ -27,12 +27,6 @@ namespace Assets.Scripts
             {
                 score.text = stack.Blocks.Count.ToString();
 
-                var block = stack.Blocks.Last();
-
-                var ripple = Instantiate(ripplePrefab);
-                ripple.transform.position = block.transform.position;
-                ripple.Animate(block.transform.localScale.x, block.transform.localScale.z, .05f);
-
                 if (result == StackBuilder.PlacementResult.Miss)
                 {
                     score.gameObject.SetActive(false);
@@ -44,6 +38,15 @@ namespace Assets.Scripts
                     score.gameObject.SetActive(true);
                     gameOver.gameObject.SetActive(false);
                     retry.gameObject.SetActive(false);
+
+                    if (result == StackBuilder.PlacementResult.Placed)
+                    {
+                        var block = stack.Blocks.Last();
+
+                        var ripple = Instantiate(ripplePrefab);
+                        ripple.transform.position = block.transform.position;
+                        ripple.Animate(block.transform.localScale.x, block.transform.localScale.z, .05f);
+                    }
                 }
             };
         }
