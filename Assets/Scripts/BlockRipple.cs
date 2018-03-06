@@ -1,8 +1,6 @@
-﻿using Assets.Core.Extensions;
-using Assets.Core.Scripts.Extensions;
+﻿using Assets.Core.Scripts.Extensions;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -15,14 +13,11 @@ namespace Assets.Scripts
         [SerializeField] private RectTransform top;
         [SerializeField] private RectTransform bottom;
 
-        private void Awake()
-        {
-            canvasGroup.alpha = 0;
-            canvasGroup.DoFade(1, .3f).SetLoops(2, LoopType.Yoyo);
-        }
-
         public void Animate(float width, float height, float thickens)
         {
+            canvasGroup.alpha = 0;
+            canvasGroup.DoFade(1, .3f).SetEase(Ease.InQuad).SetLoops(2, LoopType.Yoyo);
+
             left.SetWidth(thickens);
             right.SetWidth(thickens);
             top.SetHeight(thickens);
