@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 186357655}
   - component: {fileID: 186357654}
   - component: {fileID: 186357658}
+  - component: {fileID: 186357659}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -227,6 +228,27 @@ MonoBehaviour:
   retry: {fileID: 2012462312}
   ripplePrefab: {fileID: 114764862286001472, guid: 7acb4625ce5003d4781be30cb7cc1ac6,
     type: 2}
+--- !u!114 &186357659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 186357653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UiScaleMode: 1
+  m_ReferencePixelsPerUnit: 100
+  m_ScaleFactor: 1
+  m_ReferenceResolution: {x: 1200, y: 800}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 1
+  m_PhysicalUnit: 3
+  m_FallbackScreenDPI: 96
+  m_DefaultSpriteDPI: 96
+  m_DynamicPixelsPerUnit: 1
 --- !u!1 &206820439
 GameObject:
   m_ObjectHideFlags: 0
