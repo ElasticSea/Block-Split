@@ -12,13 +12,10 @@ namespace Assets.Scripts
         {
             builder.OnBlockPlaced += result =>
             {
-                if (result == StackBuilder.PlacementResult.Placed)
-                {
-                    var block = builder.Blocks.Last();
-                    transform.position = Vector3.up *
-                                         Mathf.Max(minHeight,
-                                             block.transform.position.y + block.GetComponent<Collider>().bounds.size.y / 2);
-                }
+                var block = builder.Blocks.Last();
+                transform.position = Vector3.up *
+                                        Mathf.Max(minHeight,
+                                            block.transform.position.y + block.GetComponent<Collider>().bounds.size.y / 2);
             };
         }
     }
