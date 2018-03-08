@@ -5,7 +5,7 @@ namespace Assets.Scripts
 {
     public class KillBlockBelowHeight : MonoBehaviour
     {
-        public float Height { get; set; }
+        public float Height { private get; set; }
         public Pool<GameObject> Pool { private get; set; }
 
         private void Update()

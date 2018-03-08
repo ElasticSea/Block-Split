@@ -14,7 +14,6 @@ namespace Assets.Scripts
         [SerializeField] private Text score;
         [SerializeField] private Text gameOver;
         [SerializeField] private Text retry;
-        [SerializeField] private BlockRipple ripplePrefab;
 
         private void Awake()
         {
@@ -38,15 +37,6 @@ namespace Assets.Scripts
                     score.gameObject.SetActive(true);
                     gameOver.gameObject.SetActive(false);
                     retry.gameObject.SetActive(false);
-
-                    if (result == StackBuilder.PlacementResult.Placed)
-                    {
-                        var block = stack.Blocks.Last();
-
-                        var ripple = Instantiate(ripplePrefab);
-                        ripple.transform.position = block.transform.position;
-                        ripple.Animate(block.transform.localScale.x, block.transform.localScale.z, .05f);
-                    }
                 }
             };
         }

@@ -16,6 +16,7 @@ namespace Assets.Scripts
         [SerializeField] private float snapMarginOfError = .1f;
         [SerializeField] private Color blockColor = Color.blue;
         [SerializeField] private Color cutoutColor = Color.red;
+        [SerializeField] private float speed = 1;
 
         public Vector3 PedestalSize
         {
@@ -45,6 +46,12 @@ namespace Assets.Scripts
         {
             get { return cutoutColor; }
             set { cutoutColor = value; }
+        }
+
+        public float Speed
+        {
+            get { return speed; }
+            set { speed = value; }
         }
 
         private List<Collider> blocks = new List<Collider>();
@@ -103,14 +110,14 @@ namespace Assets.Scripts
                 currentBlock = CreateBlock(
                     (position + Vector3.forward).SetY(height),
                     (position + Vector3.back).SetY(height),
-                    size, 1);
+                    size, Speed);
             }
             else
             {
                 currentBlock = CreateBlock(
                     (position + Vector3.left).SetY(height),
                     (position + Vector3.right).SetY(height),
-                    size, 1);
+                    size, Speed);
             }
         }
 

@@ -13,9 +13,8 @@ namespace Assets.Scripts
             builder.OnBlockPlaced += result =>
             {
                 var block = builder.Blocks.Last();
-                transform.position = Vector3.up *
-                                        Mathf.Max(minHeight,
-                                            block.transform.position.y + block.GetComponent<Collider>().bounds.size.y / 2);
+                var height = block.transform.position.y + block.GetComponent<Collider>().bounds.size.y / 2;
+                transform.position = Vector3.up * Mathf.Max(minHeight, height);
             };
         }
     }
