@@ -435,7 +435,6 @@ GameObject:
   m_Component:
   - component: {fileID: 583985108}
   - component: {fileID: 583985107}
-  - component: {fileID: 583985106}
   - component: {fileID: 583985105}
   - component: {fileID: 583985109}
   m_Layer: 0
@@ -447,13 +446,6 @@ GameObject:
   m_IsActive: 1
 --- !u!81 &583985105
 AudioListener:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 583985104}
-  m_Enabled: 1
---- !u!124 &583985106
-Behaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -771,7 +763,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   builder: {fileID: 1124118576}
-  colorMultiplier: 10
+  colorMultiplier: 0.03
 --- !u!114 &1124118581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -784,7 +776,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   builder: {fileID: 1124118576}
-  speedIncreaseOverLevel: 0.0005
+  speedIncreaseOverLevel: 0.001
 --- !u!114 &1124118582
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -848,7 +840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a147512e0e03cb4a9a4017466513bbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameplayManager: {fileID: 0}
+  gameplayManager: {fileID: 1124118579}
   rectTransform: {fileID: 1129346828}
 --- !u!114 &1129346830
 MonoBehaviour:

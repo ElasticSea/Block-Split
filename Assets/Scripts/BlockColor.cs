@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Assets.Scripts
 {
@@ -8,20 +9,20 @@ namespace Assets.Scripts
         private const float GOLDEN_RATIO = 1.6180339887f;
 
         [SerializeField] private StackBuilder builder;
-        [SerializeField] private int colorMultiplier;
+        [SerializeField] private float colorMultiplier;
+
+        private Color startingColor = Color.red.TransformHSV((float) (360 * new Random().NextDouble()), 1, 1);
+        private Color Color => startingColor.TransformHSV(colorMultiplier * 360 * GOLDEN_RATIO * builder.Count, 1, 1);
 
         private void Awake()
         {
-            builder.BlockColor = Color;
-            builder.CutoutColor = Color;
             builder.OnBlockPlaced += result =>
             {
                 builder.BlockColor = Color;
                 builder.CutoutColor = Color;
             };
+            builder.BlockColor = Color;
+            builder.CutoutColor = Color;
         }
-
-        private Color startingColor = Color.red.TransformHSV((float)(360 * new System.Random().NextDouble()), 1, 1);
-        private Color Color => startingColor.TransformHSV(colorMultiplier * GOLDEN_RATIO * builder.Count, 1, 1);
     }
 }

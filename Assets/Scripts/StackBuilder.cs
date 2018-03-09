@@ -18,6 +18,12 @@ namespace Assets.Scripts
         [SerializeField] private Color cutoutColor = Color.red;
         [SerializeField] private float speed = 1;
 
+        private readonly List<Collider> blocks = new List<Collider>();
+
+        private Collider currentBlock;
+        private Pool<GameObject> pool;
+        private Bounds blockBounds;
+
         public Vector3 PedestalSize
         {
             get { return pedestalSize; }
@@ -54,14 +60,8 @@ namespace Assets.Scripts
             set { speed = value; }
         }
 
-        private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
         public int Count => blocks.Count;
-
-        private Collider currentBlock;
-        private Tweener transition;
-        private Pool<GameObject> pool;
-        private Bounds extendedForm;
 
         public event Action<PlacementResult> OnBlockPlaced = result => { };
 
@@ -80,22 +80,21 @@ namespace Assets.Scripts
         private void Start()
         {
             var pos = Vector3.zero.SetY(-PedestalSize.y / 2);
-            var block = CreateBlock(pos, pos, PedestalSize, 0);
-
-            transition.Kill();
-            extendedForm = new Bounds(block.transform.position, block.transform.localScale);
+            var block = CreateBlock(pos, pos, PedestalSize, 0, false);
+            blockBounds = new Bounds(block.transform.position, block.transform.localScale);
             blocks.Add(block);
             OnBlockPlaced(PlacementResult.Placed);
         }
 
+        // Creates new block
         public void SpawnBlock()
         {
             if (currentBlock != null) return;
 
             var lastblock = blocks.Last();
-            var position = extendedForm.center;
+            var position = blockBounds.center;
             var height = position.y + lastblock.bounds.extents.y + BlockHeight / 2;
-            var size = extendedForm.size.SetY(BlockHeight);
+            var size = blockBounds.size.SetY(BlockHeight);
 
             if (blocks.Count % 2 == 0)
             {
@@ -113,47 +112,51 @@ namespace Assets.Scripts
             }
         }
 
+        // Places current block
         public void PlaceBlock()
         {
             if (currentBlock == null) return;
 
-            transition.Kill();
             PlaceBlock(blocks.Last(), currentBlock);
             currentBlock = null;
         }
 
-        private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed)
+        private Collider CreateBlock(Vector3 from, Vector3 to, Vector3 size, float speed, bool animate = true)
         {
             var block = pool.Get().GetComponent<Collider>();
             block.GetComponent<Renderer>().material.color = blockColor;
             block.transform.localScale = size;
             block.transform.position = from;
-            transition = block.transform.DOMove(to, from.Distance(to) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
+
+            if (animate)
+                block.transform.DOMove(to, from.Distance(to) / speed).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo);
+
             return block;
         }
 
+        // Extends block in random direction by margin size
         public void Extend()
         {
-            var last = blocks.Last().transform;
-
             var offsets = new[]
             {
-                Tuple.Create(Vector3.left, .5f - Mathf.Abs(extendedForm.center.x - extendedForm.size.x / 2f)),
-                Tuple.Create(Vector3.right,  .5f- Mathf.Abs(extendedForm.center.x + extendedForm.size.x / 2f)),
-                Tuple.Create(Vector3.back,  .5f -Mathf.Abs(extendedForm.center.z - extendedForm.size.z / 2f)),
-                Tuple.Create(Vector3.forward, .5f -Mathf.Abs( extendedForm.center.z + extendedForm.size.z / 2f))
+                Tuple.Create(Vector3.left, .5f - Mathf.Abs(blockBounds.center.x - blockBounds.size.x / 2f)),
+                Tuple.Create(Vector3.right, .5f - Mathf.Abs(blockBounds.center.x + blockBounds.size.x / 2f)),
+                Tuple.Create(Vector3.back, .5f - Mathf.Abs(blockBounds.center.z - blockBounds.size.z / 2f)),
+                Tuple.Create(Vector3.forward, .5f - Mathf.Abs(blockBounds.center.z + blockBounds.size.z / 2f))
             };
 
             var dir = offsets.OrderByDescending(it => it.Item2).FirstOrDefault(it => it.Item2 > 0.001f)?.Item1;
+
             if (dir != null)
             {
-                extendedForm = new Bounds(
+                var last = blocks.Last().transform;
+                blockBounds = new Bounds(
                     last.position + dir.Value * snapMarginOfError / 2f,
                     last.localScale + dir.Value.Abs() * snapMarginOfError
                 );
 
-                last.DOScale(extendedForm.size, .3f).SetEase(Ease.Linear);
-                last.DOMove(extendedForm.center, .3f).SetEase(Ease.Linear);
+                last.DOScale(blockBounds.size, .3f).SetEase(Ease.Linear);
+                last.DOMove(blockBounds.center, .3f).SetEase(Ease.Linear);
             }
         }
 
@@ -186,15 +189,14 @@ namespace Assets.Scripts
                 cutout.name = "Cutout";
                 cutout.gameObject.GetOrAddComponent<Rigidbody>().isKinematic = false;
 
-
                 var kill = cutout.GetOrAddComponent<KillBlockBelowHeight>();
                 kill.Height = blocks.Last().transform.position.y - 10;
-                kill.Pool = pool;
+                kill.OnBelowHeight = go => { pool.Put(go); };
             }
 
             if (baseBlock != null)
             {
-                extendedForm = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
+                blockBounds = new Bounds(baseBlock.transform.position, baseBlock.transform.localScale);
                 OnBlockPlaced(result.Cutout == null ? PlacementResult.Placed : PlacementResult.Partial);
             }
             else
@@ -207,7 +209,7 @@ namespace Assets.Scripts
         {
             previous.transform.position = previous.bounds
                 .GetVertices()
-                .Select(v => v.Snap(SnapMarginOfError, 10000))
+                .Select(v => v.Snap(SnapMarginOfError, int.MaxValue))
                 .ToArray()
                 .ToBounds()
                 .center;
@@ -223,7 +225,9 @@ namespace Assets.Scripts
 
         public enum PlacementResult
         {
-            Placed, Partial, Miss
+            Placed,
+            Partial,
+            Miss
         }
     }
 }

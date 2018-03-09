@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -32,10 +33,13 @@ namespace Assets.Scripts
                     builder.Extend();
                 }
             };
+
+            StartCoroutine(StartGame());
         }
 
-        private void Start()
+        private IEnumerator StartGame()
         {
+            yield return new WaitForEndOfFrame();
             builder.SpawnBlock();
         }
 

@@ -12,15 +12,6 @@ namespace Assets.Scripts
 
         private bool isOn;
 
-        private void Awake()
-        {
-            textIcon.gameObject.AddComponent<EventTrigger>().Click(arg0 =>
-            {
-                IsOn = !IsOn;
-            });
-            IsOn = true;
-        }
-
         public bool IsOn
         {
             get { return isOn; }
@@ -31,6 +22,12 @@ namespace Assets.Scripts
                 textIcon.text = IsOn ? GoogleIcons.volume_off : GoogleIcons.volume_up;
                 AudioListener.volume = IsOn ? 1 : 0;
             }
+        }
+
+        private void Awake()
+        {
+            textIcon.gameObject.AddComponent<EventTrigger>().Click(arg0 => IsOn = !IsOn);
+            IsOn = true;
         }
     }
 }

@@ -15,10 +15,9 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            retry.gameObject.AddComponent<EventTrigger>().PointerClick(d =>
-            {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            });
+            retry.gameObject
+                 .AddComponent<EventTrigger>()
+                 .PointerClick(d => { SceneManager.LoadScene(SceneManager.GetActiveScene().name); });
 
             stack.OnBlockPlaced += result =>
             {

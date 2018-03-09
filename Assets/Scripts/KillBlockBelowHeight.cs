@@ -1,18 +1,28 @@
-﻿using Assets.Core.Scripts;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Events;
 
 namespace Assets.Scripts
 {
     public class KillBlockBelowHeight : MonoBehaviour
     {
-        public float Height { private get; set; }
-        public Pool<GameObject> Pool { private get; set; }
+        [SerializeField] private float height;
+        [SerializeField] private UnityAction<GameObject> onBelowHeight;
+
+        public float Height
+        {
+            set { height = value; }
+        }
+
+        public UnityAction<GameObject> OnBelowHeight
+        {
+            set { onBelowHeight = value; }
+        }
 
         private void Update()
         {
-            if (transform.position.y < Height)
+            if (transform.position.y < height)
             {
-                Pool.Put(gameObject);
+                onBelowHeight(gameObject);
             }
         }
     }

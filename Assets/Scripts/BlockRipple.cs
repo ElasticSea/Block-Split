@@ -31,11 +31,12 @@ namespace Assets.Scripts
             right.offsetMax = new Vector2(right.offsetMax.x, -thickens);
             right.SetHeight(1 + 2 * thickens);
 
-            canvasGroup.GetComponent<RectTransform>().SetWidth(width);
-            canvasGroup.GetComponent<RectTransform>().SetHeight(height);
+            var canvasRect = canvasGroup.GetComponent<RectTransform>();
+            canvasRect.SetWidth(width);
+            canvasRect.SetHeight(height);
 
-            DOTween.To(() => canvasGroup.GetComponent<RectTransform>().GetWidth(), x => canvasGroup.GetComponent<RectTransform>().SetWidth(x), canvasGroup.GetComponent<RectTransform>().GetWidth() + .4f, .8f).SetEase(Ease.Linear);
-            DOTween.To(() => canvasGroup.GetComponent<RectTransform>().GetHeight(), x => canvasGroup.GetComponent<RectTransform>().SetHeight(x), canvasGroup.GetComponent<RectTransform>().GetHeight() + .4f, .8f).SetEase(Ease.Linear);
+            canvasRect.DoWidth(canvasRect.GetWidth() + .4f, .8f);
+            canvasRect.DoHeight(canvasRect.GetHeight() + .4f, .8f);
         }
     }
 }

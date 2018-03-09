@@ -26,7 +26,7 @@ namespace Assets.Scripts
                     }
 
                     // Play sound cue
-                    placeSound.pitch = 1 + (gameplay.Record * .1f) % 1;
+                    placeSound.pitch = 1 + gameplay.Record * .1f % 1;
                     placeSound.Play();
                 }
             };
