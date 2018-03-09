@@ -56,6 +56,7 @@ namespace Assets.Scripts
 
         private List<Collider> blocks = new List<Collider>();
         public List<Collider> Blocks => blocks.ToList();
+        public int Count => blocks.Count;
 
         private Collider currentBlock;
         private Tweener transition;
@@ -66,16 +67,7 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            pool = new Pool<GameObject>(10, () =>
-            {
-                // BUG Fixes code stripping in WEBGL https://issuetracker.unity3d.com/issues/webgl-createprimitive-fails-to-create-required-components
-                MeshCollider a;
-                MeshFilter b;
-                MeshRenderer c;
-                BoxCollider d;
-                var s = Shader.Find("Default");
-                return GameObject.CreatePrimitive(PrimitiveType.Cube);
-            }, go =>
+            pool = new Pool<GameObject>(10, () => GameObject.CreatePrimitive(PrimitiveType.Cube), go =>
             {
                 go.SetActive(true);
                 go.GetOrAddComponent<Rigidbody>().isKinematic = true;
@@ -125,6 +117,7 @@ namespace Assets.Scripts
         {
             if (currentBlock == null) return;
 
+            transition.Kill();
             PlaceBlock(blocks.Last(), currentBlock);
             currentBlock = null;
         }
@@ -175,8 +168,6 @@ namespace Assets.Scripts
 
             var result = BoxCutter.Cut(previous.bounds, current.bounds);
 
-            transition.Kill();
-
             GameObject baseBlock = null;
             if (result.Base != null)
             {
@@ -214,7 +205,11 @@ namespace Assets.Scripts
 
         private void ClampCollider(Collider previous)
         {
-            previous.transform.position = previous.bounds.GetVertices().Select(v => v.Snap(SnapMarginOfError, 10000)).ToArray().ToBounds()
+            previous.transform.position = previous.bounds
+                .GetVertices()
+                .Select(v => v.Snap(SnapMarginOfError, 10000))
+                .ToArray()
+                .ToBounds()
                 .center;
         }
 

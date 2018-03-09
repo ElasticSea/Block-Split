@@ -2,7 +2,7 @@
 
 namespace Assets.Scripts
 {
-    public class DifficultyManager : MonoBehaviour
+    public class DifficultyProgression : MonoBehaviour
     {
         [SerializeField] private StackBuilder builder;
         [SerializeField] private float speedIncreaseOverLevel;
@@ -11,7 +11,7 @@ namespace Assets.Scripts
         {
             builder.OnBlockPlaced += result =>
             {
-                builder.Speed = 1 + builder.Blocks.Count * speedIncreaseOverLevel;
+                builder.Speed = 1 + builder.Count * speedIncreaseOverLevel;
             };
         }
     }

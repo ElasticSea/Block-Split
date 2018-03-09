@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Assets.Core.Extensions;
-using Assets.Core.Scripts.Extensions;
+﻿using Assets.Core.Scripts.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -24,7 +22,7 @@ namespace Assets.Scripts
 
             stack.OnBlockPlaced += result =>
             {
-                score.text = stack.Blocks.Count.ToString();
+                score.text = stack.Count.ToString();
 
                 if (result == StackBuilder.PlacementResult.Miss)
                 {

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class GameEffects : MonoBehaviour
+    public class BlockEffects : MonoBehaviour
     {
         [SerializeField] private StackBuilder builder;
         [SerializeField] private GameplayManager gameplay;

@@ -6,8 +6,6 @@ namespace Assets.Scripts
     {
         [SerializeField] private StackBuilder builder;
         [SerializeField] private int expandThreshold;
-        [SerializeField] private BlockRipple ripplePrefab;
-        [SerializeField] private AudioSource placeSound;
 
         private bool gameover;
         public float Record { get; private set; }
@@ -34,6 +32,11 @@ namespace Assets.Scripts
                     builder.Extend();
                 }
             };
+        }
+
+        private void Start()
+        {
+            builder.SpawnBlock();
         }
 
         public void NextBlock()
