@@ -10,6 +10,7 @@ namespace Assets.Scripts
     {
         [SerializeField] private StackBuilder stack;
         [SerializeField] private Text score;
+        [SerializeField] private Text score2;
         [SerializeField] private Text gameOver;
         [SerializeField] private Text retry;
 
@@ -22,18 +23,17 @@ namespace Assets.Scripts
             stack.OnBlockPlaced += result =>
             {
                 score.text = stack.Count.ToString();
+                score2.text = stack.Count.ToString();
 
                 if (result == StackBuilder.PlacementResult.Miss)
                 {
                     score.gameObject.SetActive(false);
                     gameOver.gameObject.SetActive(true);
-                    retry.gameObject.SetActive(true);
                 }
                 else
                 {
                     score.gameObject.SetActive(true);
                     gameOver.gameObject.SetActive(false);
-                    retry.gameObject.SetActive(false);
                 }
             };
         }
