@@ -1,4 +1,4 @@
-﻿using Assets.Core.Scripts.Extensions;
+﻿using _Framework.Scripts.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;

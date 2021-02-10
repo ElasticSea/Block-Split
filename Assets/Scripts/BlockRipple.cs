@@ -1,5 +1,6 @@
-﻿using Assets.Core.Scripts.Extensions;
+﻿using _Framework.Scripts.Extensions;
 using DG.Tweening;
+using ElasticSea.Framework.Extensions;
 using UnityEngine;
 
 namespace Assets.Scripts

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Core.Extensions;
-using Assets.Core.Scripts;
-using Assets.Core.Scripts.Extensions;
 using DG.Tweening;
+using ElasticSea.Framework.Extensions;
+using ElasticSea.Framework.Util;
 using UnityEngine;
 
 namespace Assets.Scripts

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Assets.Core.Extensions;
-using Assets.Core.Scripts.Extensions;
+using ElasticSea.Framework.Extensions;
 using UnityEngine;
 
 namespace Assets.Scripts

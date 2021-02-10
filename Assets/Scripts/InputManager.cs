@@ -1,4 +1,4 @@
-﻿using Assets.Core.Extensions;
+﻿using ElasticSea.Framework.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
